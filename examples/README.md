@@ -162,7 +162,7 @@ A high level overview of customizing the templates may look like:
           ```
       - ***WARNING: This particular example will upload the entire git repository folder to Azure storage. If containing any sensitive information (ex. from .gitignore, custom files), you should remove those.***
 
- 1. Update the template parameters ``templateBaseUrl`` and ``artifactLocation`` to reference the custom location. These must combine to resolve to the location containing the ``modules/`` folder.
+ 1. Update the template parameters ``templateBaseUrl`` and ``artifactLocation`` to reference the custom location. These must combine to resolve to the location containing the ``modules/`` folder, however, the ``github.com`` part of the URL must be replaced with ``raw.githubusercontent.com`` since unprocessed versions of the files must be served up.
 
     Examples:
 
