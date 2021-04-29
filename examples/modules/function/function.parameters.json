@@ -3,25 +3,25 @@
 	"contentVersion": "1.2.0.0",
 	"parameters": {
 		"vmssId": {
-			"value": "vmssId"
+			"value": ""
 		},
 		"bigIqAddress": {
-			"value": "Default"
+			"value": ""
 		},
-		"bigIqLicensePoolName": {
-			"value": "Default"
+		"bigIqLicensePool": {
+			"value": ""
+		},
+		"bigIqPassword": {
+			"value": ""
 		},
 		"bigIqUsername": {
-			"value": "Default"
+			"value": ""
 		},
 		"bigIqTenant": {
-			"value": "Default"
+			"value": ""
 		},
-		"bigIqUtilityKey": {
-			"value": "Default"
-		},
-		"bigIqUtilityOffer": {
-			"value": "Default"
+		"bigIqUtilitySku": {
+			"value": ""
 		},
 		"functionAppName": {
 			"value": "functionApp"

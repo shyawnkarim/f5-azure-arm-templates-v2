@@ -18,35 +18,35 @@
 		"customRolePermissions": {
 			"defaultValue": [],
 			"metadata": {
-				"description": "Array of permissions for the custom roleDefinition"
+				"description": "Array of permissions for the custom roleDefinition."
 			},
 			"type": "array"
 		},
 		"customRoleAssignableScopes": {
 			"defaultValue": [],
 			"metadata": {
-				"description": "Array of scopes assigned for the custom roleDefinition"
+				"description": "Array of scopes assigned for the custom roleDefinition."
 			},
 			"type": "array"
 		},
 		"customRoleDescription": {
 			"defaultValue": "",
 			"metadata": {
-				"description": "Detailed description of the role definition"
+				"description": "Detailed description of the role definition."
 			},
 			"type": "string"
 		},
 		"customRoleName": {
 			"defaultValue": "",
 			"metadata": {
-				"description": "Friendly name of the role definition"
+				"description": "Friendly name of the role definition."
 			},
 			"type": "string"
 		},
 		"keyVaultName": {
 			"defaultValue": "",
 			"metadata": {
-				"description": "KeyVault name. This is required for provisioning KeyVault"
+				"description": "KeyVault name. This is required for provisioning KeyVault."
 			},
 			"type": "string"
 		},
@@ -56,7 +56,7 @@
 				"list"
 			],
 			"metadata": {
-				"description": "Array of permissions allowed on KeyVault Secrets for role"
+				"description": "Array of permissions allowed on KeyVault Secrets for role."
 			},
 			"type": "array"
 		},
@@ -66,28 +66,28 @@
 				"list"
 			],
 			"metadata": {
-				"description": "Array of permissions allowed on KeyVault Secrets for role"
+				"description": "Array of permissions allowed on KeyVault Secrets for role."
 			},
 			"type": "array"
 		},
 		"secretName": {
 			"defaultValue": "",
 			"metadata": {
-				"description": "secret name. This is required for creating secret"
+				"description": "Enter secret name. This is required for creating secret."
 			},
 			"type": "string"
 		},
 		"secretValue": {
 			"defaultValue": "",
 			"metadata": {
-				"description": "secret value. This is required for creating secret"
+				"description": "Enter secret value. This is required for creating secret."
 			},
 			"type": "securestring"
 		},
 		"userAssignedIdentityName": {
 			"defaultValue": "",
 			"metadata": {
-				"description": "name for user assigned identity. This is required for creating Azure User Assigned Identity"
+				"description": "Name for user assigned identity. This is required for creating Azure User Assigned Identity."
 			},
 			"type": "string"
 		},

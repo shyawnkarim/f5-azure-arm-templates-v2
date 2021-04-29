@@ -5,36 +5,41 @@
 		"builtInRoleType": {
 			"value": "Reader"
 		},
-		"customRoleActions": {
-			"value": [
-				"Microsoft.Resources/subscriptions/resourceGroups/read",
-				"Microsoft.Resources/subscriptions/resourceGroups/list"
-			]
+		"customRolePermissions": {
+			"value": []
 		},
 		"customRoleAssignableScopes": {
-			"value": [
-				"XXXX-NEED-VALID-ID-HERE"
-			]
+			"value": []
 		},
 		"customRoleDescription": {
-			"value": "custom reader"
+			"value": ""
 		},
 		"customRoleName": {
-			"value": "reader"
-		},
-		"customRoleNotActions": {
-			"value": [
-				"Microsoft.Resources/subscriptions/resourceGroups/write"
-			]
+			"value": ""
 		},
 		"keyVaultName": {
-			"value": "key-vault"
+			"value": ""
+		},
+		"keyVaultPermissionsKeys": {
+			"value": [
+				"get",
+				"list"
+			]
+		},
+		"keyVaultPermissionsSecrets": {
+			"value": [
+				"get",
+				"list"
+			]
 		},
 		"secretName": {
-			"value": "linux-admin"
+			"value": ""
 		},
 		"secretValue": {
-			"value": "StrongPassword212+"
+			"value": ""
+		},
+		"userAssignedIdentityName": {
+			"value": ""
 		},
 		"tagValues": {
 			"value": {
@@ -44,9 +49,6 @@
 				"group": "GROUP",
 				"owner": "OWNER"
 			}
-		},
-		"userAssignedIdentityName": {
-			"value": "user-assigned-identity"
 		}
 	}
 }

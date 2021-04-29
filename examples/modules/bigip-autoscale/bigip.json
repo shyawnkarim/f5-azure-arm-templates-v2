@@ -5,7 +5,7 @@
     "adminUsername": {
       "defaultValue": "azureuser",
       "metadata": {
-        "description": "Admin username applied to big-ip Virtual Machine."
+        "description": "Admin username applied to BIG-IP Virtual Machine."
       },
       "type": "string"
     },
@@ -13,6 +13,13 @@
       "defaultValue": "",
       "metadata": {
         "description": "Enter the name you wish to use to create an Application Insights component. Leave default if you do not wish to create one."
+      },
+      "type": "string"
+    },
+    "bigIpRuntimeInitPackageUrl": {
+      "defaultValue": "https://cdn.f5.com/product/cloudsolutions/f5-bigip-runtime-init/develop/develop/dist/f5-bigip-runtime-init-1.2.0-1.gz.run",
+      "metadata": {
+        "description": "URL for BIG-IP Runtime Init package"
       },
       "type": "string"
     },
@@ -37,35 +44,28 @@
       },
       "type": "array"
     },
-    "dnsLabel": {
-      "defaultValue": "appDns",
-      "metadata": {
-        "description": "Unique DNS Name for the Public IP address used to access the Virtual Machine."
-      },
-      "type": "string"
-    },
     "image": {
-      "defaultValue": "f5-networks:f5-big-ip-best:f5-bigip-virtual-edition-25m-best-hourly:15.1.200000",
+      "defaultValue": "f5-networks:f5-big-ip-best:f5-bigip-virtual-edition-25m-best-hourly:15.1.201000",
       "metadata": {
-        "description": "2 formats accepted. URN of the image to use in Azure marketplace or id of custom image. Example URN value: f5-networks:f5-big-ip-byol:f5-big-ltm-2slot-byol:15.1.002000. You can find the URNs of F5 marketplace images in the README for this template or by running the command: az vm image list --output yaml --publisher f5-networks --all. See https://clouddocs.f5.com/cloud/public/v1/azure/Azure_download.html for information on creating custom bigip image."
+        "description": "2 formats accepted. URN of the image to use in Azure marketplace or id of custom image. Example URN value: f5-networks:f5-big-ip-byol:f5-big-ltm-2slot-byol:15.1.201000. You can find the URNs of F5 marketplace images in the README for this template or by running the command: az vm image list --output yaml --publisher f5-networks --all. See https://clouddocs.f5.com/cloud/public/v1/azure/Azure_download.html for information on creating custom BIG-IP image."
       },
       "type": "string"
     },
-    "inboundMgmtNatPoolID": {
+    "inboundMgmtNatPoolId": {
       "defaultValue": "",
       "metadata": {
-        "description": "Nat pool ID used for big-ip management gui connections. Leave default if you do not wish to use natpools or are using public ip."
+        "description": "Nat pool ID used for BIG-IP management gui connections. Leave default if you do not wish to use natpools or are using public ip."
       },
       "type": "string"
     },
-    "inboundSshNatPoolID": {
+    "inboundSshNatPoolId": {
       "defaultValue": "",
       "metadata": {
-        "description": "Nat pool ID used for ssh connections to big-ip. Leave default if you do not wish to use natpools or are using public ip."
+        "description": "Nat pool ID used for ssh connections to BIG-IP. Leave default if you do not wish to use natpools or are using public ip."
       },
       "type": "string"
     },
-    "instanceHealthProbeID": {
+    "instanceHealthProbeId": {
       "defaultValue": "",
       "metadata": {
         "description": "Enter the resource ID of the probe that you wish to use to determine instance health when performing a rolling upgrade of scale set instances. Use the default value if you are using a manual upgrade policy. Note: The probe must be associated with a load balancing rule."
@@ -82,18 +82,18 @@
     "loadBalancerBackendAddressPoolsArray": {
       "defaultValue": [],
       "metadata": {
-        "description": "Array of pools where big-ip instances are to be added."
+        "description": "Array of pools where BIG-IP instances are to be added."
       },
       "type": "array"
     },
-    "nsgID": {
+    "nsgId": {
       "defaultValue": "",
       "metadata": {
         "description": "Enter security group id to use. Use default if you do not wish to apply an NSG policy."
       },
       "type": "string"
     },
-    "provisionPublicIP": {
+    "provisionPublicIp": {
       "defaultValue": {},
       "metadata": {
         "description": "Enter public ip json configuration to attach public ip to instances. See https://docs.microsoft.com/en-us/azure/templates/microsoft.compute/2019-07-01/virtualmachinescalesets for supported values. Leave default if using natpool, or not using public ip's on instances."
@@ -107,9 +107,9 @@
       },
       "type": "string"
     },
-    "runtimeConfig": {
+    "bigIpRuntimeInitConfig": {
       "metadata": {
-        "description": "Url to bigip-runtime-init configuration file or json string to use for configuration file."
+        "description": "Supply a URL to the bigip-runtime-init configuration file in YAML or JSON format, or an escaped JSON string to use for f5-bigip-runtime-init configuration."
       },
       "type": "string"
     },
@@ -163,13 +163,13 @@
     },
     "sshKey": {
       "metadata": {
-        "description": "Supply ssh public key you wish to use to connect to big-ip."
+        "description": "REQUIRED - Supply the public key that will be used for SSH authentication to the BIG-IP and application virtual machines."
       },
       "type": "string"
     },
     "subnetId": {
       "metadata": {
-        "description": "Enter subnet id to use."
+        "description": "Enter the subnet ID to use."
       },
       "type": "string"
     },
@@ -193,6 +193,12 @@
       },
       "type": "string"
     },
+    "uniqueString": {
+      "metadata": {
+        "description": "REQUIRED - A prefix that will be used to name template resources. Because some resources require globally unique names, we recommend using a unique value."
+      },
+      "type": "string"
+    },
     "updateTag": {
       "defaultValue": "[utcNow()]",
       "metadata": {
@@ -210,19 +216,19 @@
     "userAssignManagedIdentity": {
       "defaultValue": "",
       "metadata": {
-        "description": "Enter user assigned management identity Id to be associated to vmss. Leave default if not used."
+        "description": "Enter user assigned management identity ID to be associated to vmss. Leave default if not used."
       },
       "type": "string"
     },
     "vmScaleSetMaxCount": {
-      "defaultValue": 4,
+      "defaultValue": 50,
       "metadata": {
         "description": "The maximum number of BIG-IP VEs that can be deployed into the VM Scale Set."
       },
       "type": "int"
     },
     "vmScaleSetMinCount": {
-      "defaultValue": 2,
+      "defaultValue": 1,
       "metadata": {
         "description": "The minimum (and default) number of BIG-IP VEs that will be deployed into the VM Scale Set."
       },
@@ -319,16 +325,16 @@
       }
     ],
     "computeApiVersion": "2019-12-01",
-    "customData": "[base64(concat('#!/bin/bash -x\n\n# Log to local file and serial console\nmkdir -p /var/log/cloud /config/cloud /var/config/rest/downloads\nLOG_FILE=/var/log/cloud/startup-script.log\ntouch ${LOG_FILE}\nnpipe=/tmp/$$.tmp\ntrap \"rm -f $npipe\" EXIT\nmknod $npipe p\ntee <$npipe -a ${LOG_FILE} /dev/ttyS0 &\nexec 1>&-\nexec 1>$npipe\nexec 2>&1\n\necho \"$(date  +\"%Y-%m-%dT%H:%M:%S.%3NZ\") : Starting Custom Script\"\n# Optional optimizations required as early in boot as possible before mcpd starts\n/usr/bin/setdb provision.extramb 500\n/usr/bin/setdb restjavad.useextramb true\n\n# VARS FROM TEMPLATE\nPACKAGE_URL=', variables('singleQuote'), variables('runtimeInitUrl'), variables('singleQuote'), '\nRUNTIME_CONFIG=',  variables('singleQuote'), parameters('runtimeConfig'), variables('singleQuote'), '\n\n# Render or download f5-bigip-runtime-init config\nif [[ \"${RUNTIME_CONFIG}\" =~ ^http.* ]]; then\n  curl -sfv --retry 60 --connect-timeout 5 -L \"${RUNTIME_CONFIG}\" -o /config/cloud/runtime-init.conf\nelse\n  printf ', variables('singleQuote'), '%s\\n', variables('singleQuote'), ' \"${RUNTIME_CONFIG}\" | jq . > /config/cloud/runtime-init.conf\nfi\n\n# Download and install f5-bigip-runtime-init package\nif [[ ! -s \"/var/config/rest/downloads/${PACKAGE_URL##*/}\" ]]; then\n  for i in {1..30}; do\n    curl -fv --retry 1 --connect-timeout 5 -L \"${PACKAGE_URL}\" -o \"/var/config/rest/downloads/${PACKAGE_URL##*/}\" && break || sleep 10\n  done\nfi\nbash \"/var/config/rest/downloads/${PACKAGE_URL##*/}\" -- ', variables('singleQuote'), '--cloud azure', variables('singleQuote'), '\n\n# Run\nf5-bigip-runtime-init --config-file /config/cloud/runtime-init.conf\n'))]",
+    "customData": "[base64(concat('#!/bin/bash -x\n\n# Log to local file and serial console\nmkdir -p /var/log/cloud /config/cloud /var/config/rest/downloads\nLOG_FILE=/var/log/cloud/startup-script.log\ntouch ${LOG_FILE}\nnpipe=/tmp/$$.tmp\ntrap \"rm -f $npipe\" EXIT\nmknod $npipe p\ntee <$npipe -a ${LOG_FILE} /dev/ttyS0 &\nexec 1>&-\nexec 1>$npipe\nexec 2>&1\n\necho \"$(date  +\"%Y-%m-%dT%H:%M:%S.%3NZ\") : Starting Custom Script\"\n# Optional optimizations required as early in boot as possible before mcpd starts\n/usr/bin/setdb provision.extramb 1000\n/usr/bin/setdb restjavad.useextramb true\n\n# VARS FROM TEMPLATE\nPACKAGE_URL=', variables('singleQuote'), parameters('bigIpRuntimeInitPackageUrl'), variables('singleQuote'), '\nRUNTIME_CONFIG=',  variables('singleQuote'), parameters('bigIpRuntimeInitConfig'), variables('singleQuote'), '\n\n# Render or download f5-bigip-runtime-init config\nif [[ \"${RUNTIME_CONFIG}\" =~ ^http.* ]]; then\n  curl -sfv --retry 60 --connect-timeout 5 -L \"${RUNTIME_CONFIG}\" -o /config/cloud/runtime-init.conf\nelse\n  printf ', variables('singleQuote'), '%s\\n', variables('singleQuote'), ' \"${RUNTIME_CONFIG}\" | jq . > /config/cloud/runtime-init.conf\nfi\n\n# Download and install f5-bigip-runtime-init package\nif [[ ! -s \"/var/config/rest/downloads/${PACKAGE_URL##*/}\" ]]; then\n  for i in {1..30}; do\n    curl -fv --retry 1 --connect-timeout 5 -L \"${PACKAGE_URL}\" -o \"/var/config/rest/downloads/${PACKAGE_URL##*/}\" && break || sleep 10\n  done\nfi\nbash \"/var/config/rest/downloads/${PACKAGE_URL##*/}\" -- ', variables('singleQuote'), '--cloud azure', variables('singleQuote'), '\n\n# Run\nf5-bigip-runtime-init --config-file /config/cloud/runtime-init.conf\n'))]",
     "deploymentScript": "[resourceId('Microsoft.Resources/deploymentScripts', variables('deploymentScriptName'))]",
     "deploymentScriptName": "[concat(variables('appInsightsName'), '-metric-stub')]",
-    "diagnosticsStorageAccountName": "[concat(uniqueString(parameters('dnsLabel'), resourceGroup().id, deployment().name), 'data000')]",
+    "diagnosticsStorageAccountName": "[concat(uniqueString(parameters('uniqueString'), resourceGroup().id, deployment().name), 'data000')]",
     "extSettingsRef": {
       "commandToExecute": "[concat('echo -e ', variables('customData'), ' > /var/lib/waagent/customData; bash -c \"base64 -d /var/lib/waagent/customData | bash\"')]"
     },
-    "functionAppName": "[concat(parameters('dnsLabel'), '-function')]",
+    "functionAppName": "[concat(parameters('uniqueString'), '-function')]",
     "healthProbe": {
-      "id": "[parameters('instanceHealthProbeID')]"
+      "id": "[parameters('instanceHealthProbeId')]"
     },
     "identity": "[if(empty(parameters('userAssignManagedIdentity')), variables('identitySys'), variables('identitySysUser'))]",
     "identitySys": {
@@ -354,22 +360,21 @@
     },
     "inboundMgmtNatPool": [
       {
-        "id": "[parameters('inboundMgmtNatPoolID')]"
+        "id": "[parameters('inboundMgmtNatPoolId')]"
       }
     ],
     "inboundSshNatPool": [
       {
-        "id": "[parameters('inboundSshNatPoolID')]"
+        "id": "[parameters('inboundSshNatPoolId')]"
       }
     ],
     "metricResourceUri": "[concat('/subscriptions/',subscription().subscriptionId, '/resourceGroups/',  resourceGroup().name, '/providers/Microsoft.Compute/virtualMachineScaleSets/', parameters('vmssName'))]",
     "networkSecurityGroup": {
-      "id": "[parameters('nsgID')]"
+      "id": "[parameters('nsgId')]"
     },
     "offerToUse": "[if(variables('useCustomImage'), json('null'), variables('image')[1])]",
     "roleAssignmentsApiVersion": "2017-09-01",
-    "rollingUpgrade": "[not(empty(parameters('instanceHealthProbeID')))]",
-    "runtimeInitUrl": "https://cdn.f5.com/product/cloudsolutions/f5-bigip-runtime-init/v1.1.0/dist/f5-bigip-runtime-init-1.1.0-1.gz.run",
+    "rollingUpgrade": "[not(empty(parameters('instanceHealthProbeId')))]",
     "scaleInTimeWindow": "[concat('PT', parameters('scaleInTimeWindow'), 'M')]",
     "scaleOutTimeWindow": "[concat('PT', parameters('scaleOutTimeWindow'), 'M')]",
     "singleQuote": "'",
@@ -401,8 +406,8 @@
       }
     },
     "useCustomImage": "[contains(tolower(parameters('image')), 'microsoft.compute')]",
-    "useInboundMgmtNatPool": "[if(contains(tolower(parameters('inboundMgmtNatPoolID')), 'inboundnatpools'), variables('inboundMgmtNatPool'), parameters('inboundMgmtNatPoolID'))]",
-    "useInboundSshNatPool": "[if(contains(tolower(parameters('inboundSshNatPoolID')), 'inboundnatpools'), variables('inboundSshNatPool'), parameters('inboundSshNatPoolID'))]",
+    "useInboundMgmtNatPool": "[if(contains(tolower(parameters('inboundMgmtNatPoolId')), 'inboundnatpools'), variables('inboundMgmtNatPool'), parameters('inboundMgmtNatPoolId'))]",
+    "useInboundSshNatPool": "[if(contains(tolower(parameters('inboundSshNatPoolId')), 'inboundnatpools'), variables('inboundSshNatPool'), parameters('inboundSshNatPoolId'))]",
     "versionToUse": "[if(variables('useCustomImage'), json('null'), variables('image')[3])]",
     "vmssId": "[resourceId('Microsoft.Compute/virtualMachineScaleSets', parameters('vmssName'))]"
   },
@@ -448,14 +453,14 @@
                       "properties": {
                         "loadBalancerBackendAddressPools": "[parameters('loadBalancerBackendAddressPoolsArray')]",
                         "loadBalancerInboundNatPools": "[if(and(empty(variables('useInboundMgmtNatPool')), empty(variables('useInboundSshNatPool'))), json('null'), union(variables('useInboundMgmtNatPool'), variables('useInboundSshNatPool')))]",
-                        "publicIpAddressConfiguration": "[if(empty(parameters('provisionPublicIP')), json('null'), parameters('provisionPublicIP'))]",
+                        "publicIpAddressConfiguration": "[if(empty(parameters('provisionPublicIp')), json('null'), parameters('provisionPublicIp'))]",
                         "subnet": {
                           "id": "[parameters('subnetId')]"
                         }
                       }
                     }
                   ],
-                  "networkSecurityGroup": "[if(empty(parameters('nsgID')), json('null'), variables('networkSecurityGroup'))]",
+                  "networkSecurityGroup": "[if(empty(parameters('nsgId')), json('null'), variables('networkSecurityGroup'))]",
                   "primary": true
                 }
               }
@@ -516,10 +521,10 @@
         "[variables('vmssId')]"
       ],
       "location": "[resourceGroup().location]",
-      "name": "[concat(parameters('dnsLabel'), '-autoscaleconfig')]",
+      "name": "[concat(parameters('uniqueString'), '-autoscaleconfig')]",
       "properties": {
         "enabled": true,
-        "name": "[concat(parameters('dnsLabel'), '-autoscaleconfig')]",
+        "name": "[concat(parameters('uniqueString'), '-autoscaleconfig')]",
         "notifications": [
           {
             "email": {
@@ -598,14 +603,14 @@
             "secureValue": "[reference(resourceId('Microsoft.Insights/components', variables('appInsightsName')), variables('appInsightsComponentsApiVersion')).InstrumentationKey]"
           }
         ],
-        "scriptContent": "NOW=$(date); METRICS=(\"F5_system_cpu\" \"F5_system_tmmCpu\" \"F5_system_memory\" \"F5_system_tmmMemory\" \"F5_system_networkInterfaces_mgmt_counters.bitsIn\" \"F5_system_networkInterfaces_1.0_counters.bitsIn\" \"F5_system_networkInterfaces_mgmt_counters.bitsOut\" \"F5_system_networkInterfaces_1.0_counters.bitsOut\" \"F5_system_tmmTraffic_clientSideTraffic.bitsIn\" \"F5_system_tmmTraffic_clientSideTraffic.bitsOut\" \"F5_system_tmmTraffic_serverSideTraffic.bitsIn\" \"F5_system_tmmTraffic_serverSideTraffic.bitsOut\"); for METRIC in \"${METRICS[@]}\"; do curl -d '{\"name\":\"MetricData\",\"time\":\"'\"${NOW}\"'\",\"iKey\":\"'\"${INSTRUMENTATION_KEY}\"'\",\"data\":{\"baseType\":\"MetricData\",\"baseData\":{\"metrics\":[{\"name\":\"'\"${METRIC}\"'\",\"value\":0,\"count\":0}]}}}' https://dc.services.visualstudio.com/v2/track; sleep 2; done",
+        "scriptContent": "NOW=$(date); METRICS=(\"F5_system_cpu\" \"F5_system_tmmCpu\" \"F5_system_memory\" \"F5_system_tmmMemory\" \"F5_throughputIn_sys/performance/throughput/In_Current\"); for METRIC in \"${METRICS[@]}\"; do curl -d '{\"name\":\"MetricData\",\"time\":\"'\"${NOW}\"'\",\"iKey\":\"'\"${INSTRUMENTATION_KEY}\"'\",\"data\":{\"baseType\":\"MetricData\",\"baseData\":{\"metrics\":[{\"name\":\"'\"${METRIC}\"'\",\"value\":0,\"count\":0}]}}}' https://dc.services.visualstudio.com/v2/track; sleep 2; done",
         "cleanupPreference": "OnSuccess",
         "retentionInterval": "P1D"
       }
     }
   ],
   "outputs": {
-    "appInsightsComponentID": {
+    "appInsightsComponentId": {
       "condition": "[not(equals(variables('appInsightsName'), 'NOT_USED'))]",
       "type": "string",
       "value": "[concat('/subscriptions/',subscription().subscriptionId, '/resourceGroups/',  resourceGroup().name, '/providers/microsoft.insights/components/', parameters('appInsights'))]"
@@ -615,18 +620,22 @@
       "type": "string",
       "value": "[reference(resourceId('Microsoft.Insights/components', variables('appInsightsName')), variables('appInsightsComponentsApiVersion')).InstrumentationKey]"
     },
-    "roleAssignmentID": {
+    "roleAssignmentId": {
       "condition": "[not(empty(parameters('roleDefinitionId')))]",
       "type": "string",
       "value": "[concat('/subscriptions/',subscription().subscriptionId, '/resourcegroups/',  resourceGroup().name, '/providers/Microsoft.Authorization/roleAssignments/', guid(resourceGroup().id, 'roleId'))]"
     },
-    "autoscaleSettingsID": {
+    "autoscaleSettingsId": {
       "type": "string",
-      "value": "[concat('/subscriptions/',subscription().subscriptionId, '/resourceGroups/',  resourceGroup().name, '/providers/microsoft.insights/autoscalesettings/', concat(parameters('dnsLabel'), '-autoscaleconfig'))]"
+      "value": "[concat('/subscriptions/',subscription().subscriptionId, '/resourceGroups/',  resourceGroup().name, '/providers/microsoft.insights/autoscalesettings/', concat(parameters('uniqueString'), '-autoscaleconfig'))]"
     },
-    "vmssID": {
+    "vmssId": {
       "type": "string",
       "value": "[concat('/subscriptions/',subscription().subscriptionId, '/resourceGroups/',  resourceGroup().name, '/providers/Microsoft.Compute/virtualMachineScaleSets/', parameters('vmssName'))]"
+    },
+    "vmssName": {
+      "type": "string",
+      "value": "[parameters('vmssName')]"
     }
   }
 }

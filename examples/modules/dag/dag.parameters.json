@@ -2,8 +2,8 @@
 	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
 	"contentVersion": "1.2.0.0",
 	"parameters": {
-		"dnsLabel": {
-			"value": "appDns"
+		"uniqueString": {
+			"value": ""
 		},
 		"externalLoadBalancerName": {
 			"value": "None"
@@ -12,7 +12,7 @@
 			"value": "None"
 		},
 		"internalLoadBalancerProbePort": {
-			"value": 3456
+			"value": "3456"
 		},
 		"internalSubnetId": {
 			"value": ""
@@ -23,21 +23,17 @@
 				"443"
 			]
 		},
-		"numberPublicExternalIPAddresses": {
-			"value": 1
-		},
-		"numberPublicMgmtIPAddresses": {
-			"value": 0
-		},
 		"nsg0": {
 			"value": [
 				{
 					"destinationPortRanges": ["22","8443"],
-					"sourceAddressPrefix": ""
+					"sourceAddressPrefix": "",
+					"protocol": "Tcp"
 				},
 				{
 					"destinationPortRanges": ["80","443"],
-					"sourceAddressPrefix": ""
+					"sourceAddressPrefix": "",
+					"protocol": "Tcp"
 				}
 			]
 		},
@@ -45,7 +41,8 @@
 			"value": [
 				{
 					"destinationPortRanges": ["80","443"],
-					"sourceAddressPrefix": ""
+					"sourceAddressPrefix": "",
+					"protocol": "Tcp"
 				}
 			]
 		},
@@ -53,9 +50,16 @@
 			"value": [
 				{
 					"destinationPortRanges": ["80","443"],
-					"sourceAddressPrefix": ""
+					"sourceAddressPrefix": "",
+					"protocol": "Tcp"
 				}
 			]
+		},
+		"numberPublicExternalIpAddresses": {
+			"value": 1
+		},
+		"numberPublicMgmtIpAddresses": {
+			"value": 0
 		},
 		"tagValues": {
 			"value": {

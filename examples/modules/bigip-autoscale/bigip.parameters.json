@@ -3,10 +3,13 @@
 	"contentVersion": "1.2.0.0",
 	"parameters": {
 		"adminUsername": {
-			"value": "azureuser"
+			"value": "my-admin"
 		},
 		"appInsights": {
 			"value": ""
+		},
+		"bigIpRuntimeInitPackageUrl": {
+			"value": "https://cdn.f5.com/product/cloudsolutions/f5-bigip-runtime-init/develop/develop/dist/f5-bigip-runtime-init-1.2.0-1.gz.run"
 		},
 		"cpuMetricName": {
 			"value": "Percentage CPU"
@@ -17,37 +20,37 @@
 		"customEmail": {
 			"value": []
 		},
-		"dnsLabel": {
-			"value": "appDns"
+		"uniqueString": {
+			"value": ""
 		},
 		"image": {
-			"value": "f5-networks:f5-big-ip-best:f5-bigip-virtual-edition-25m-best-hourly:15.1.200000"
+			"value": "f5-networks:f5-big-ip-best:f5-bigip-virtual-edition-25m-best-hourly:15.1.201000"
 		},
-		"inboundMgmtNatPoolID": {
+		"inboundMgmtNatPoolId": {
 			"value": ""
 		},
-		"inboundSshNatPoolID": {
+		"inboundSshNatPoolId": {
 			"value": ""
 		},
-		"instanceHealthProbeID": {
+		"instanceHealthProbeId": {
 			"value": ""
 		},
 		"instanceType": {
-			"value": "Standard_DS2_v2"
+			"value": "Standard_D2s_v3"
 		},
 		"loadBalancerBackendAddressPoolsArray": {
 			"value": []
 		},
-		"nsgID": {
+		"nsgId": {
 			"value": ""
 		},
-		"provisionPublicIP": {
+		"provisionPublicIp": {
 			"value": {}
 		},
 		"roleDefinitionId": {
 			"value": ""
 		},
-		"runtimeConfig": {
+		"bigIpRuntimeInitConfig": {
 			"value": ""
 		},
 		"scaleInCpuThreshold": {
@@ -85,6 +88,9 @@
 		},
 		"throughputMetricName": {
 			"value": "Network In"
+		},
+		"updateTag": {
+			"value": "[utcNow()]"
 		},
 		"useAvailabilityZones": {
 			"value": "Yes"

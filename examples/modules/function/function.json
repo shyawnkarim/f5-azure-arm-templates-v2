@@ -3,58 +3,51 @@
 	"contentVersion": "1.2.0.0",
 	"parameters": {
 		"vmssId": {
-			"defaultValue": "vmssId",
+			"defaultValue": "",
 			"metadata": {
 				"description": "Supply the fully-qualified resource ID of the VMSS to update."
 			},
 			"type": "string"
 		},
 		"bigIqAddress": {
-			"defaultValue": "Default",
+			"defaultValue": "",
 			"metadata": {
-				"description": "The IP address (or hostname) for the BIG-IQ to be used when licensing the BIG-IP.  Note: The BIG-IP will make a REST call to the BIG-IQ (already existing) to let it know a BIG-IP needs to be licensed. It will then license the BIG-IP using the provided BIG-IQ credentials and license pool."
+				"description": "The IP address (or hostname) for the BIG-IQ used when licensing the BIG-IP.  Note: The Azure function created by this template will make a REST call to the BIG-IQ (already existing) to revoke a license assignment when a BIG-IP instance is deallocated. This value should match the BIG-IQ address specified in the F5 Declarative Onboarding declaration passed to the bigIpRuntimeInitConfig template parameter."
 			},
 			"type": "string"
 		},
-		"bigIqLicensePoolName": {
-			"defaultValue": "Default",
+		"bigIqLicensePool": {
+			"defaultValue": "",
 			"metadata": {
-				"description": "The BIG-IQ license pool to use during BIG-IP licensing via BIG-IQ."
+				"description": "The BIG-IQ license pool to use during BIG-IP licensing via BIG-IQ. This value should match the BIG-IQ license pool specified in the F5 Declarative Onboarding declaration passed to the bigIpRuntimeInitConfig template parameter."
 			},
 			"type": "string"
 		},
 		"bigIqPassword": {
-			"defaultValue": "Default",
+			"defaultValue": "",
 			"metadata": {
-				"description": "The BIG-IQ password to use during BIG-IP licensing via BIG-IQ."
+				"description": "The BIG-IQ password to use during BIG-IP licensing via BIG-IQ; it will be stored as a secret in the Azure function KeyVault created by this template. This value should match the BIG-IQ password specified in the F5 Declarative Onboarding declaration passed to the bigIpRuntimeInitConfig template parameter."
 			},
 			"type": "securestring"
 		},
 		"bigIqUsername": {
-			"defaultValue": "azureuser",
+			"defaultValue": "",
 			"metadata": {
-				"description": "The BIG-IQ username to use during BIG-IP licensing via BIG-IQ."
+				"description": "The BIG-IQ username used during BIG-IP licensing via BIG-IQ. This value should match the BIG-IQ username specified in the F5 Declarative Onboarding declaration passed to the bigIpRuntimeInitConfig template parameter."
 			},
 			"type": "string"
 		},
 		"bigIqTenant": {
-			"defaultValue": "Default",
+			"defaultValue": "",
 			"metadata": {
-				"description": "The BIG-IQ tenant used during BIG-IP licensing via BIG-IQ."
+				"description": "The BIG-IQ tenant used during BIG-IP licensing via BIG-IQ. This value should match the BIG-IQ tenant specified in the F5 Declarative Onboarding declaration passed to the bigIpRuntimeInitConfig template parameter."
 			},
 			"type": "string"
 		},
-		"bigIqUtilityKey": {
-			"defaultValue": "Default",
+		"bigIqUtilitySku": {
+			"defaultValue": "",
 			"metadata": {
-				"description": "The BIG-IQ utility license key used during BIG-IP licensing via BIG-IQ."
-			},
-			"type": "string"
-		},
-		"bigIqUtilityOffer": {
-			"defaultValue": "Default",
-			"metadata": {
-				"description": "The BIG-IQ utility offer ID used during BIG-IP licensing via BIG-IQ."
+				"description": "The BIG-IQ utility license SKU used during BIG-IP licensing via BIG-IQ. This value should match the BIG-IQ utility SKU specified in the F5 Declarative Onboarding declaration passed to the bigIpRuntimeInitConfig template parameter."
 			},
 			"type": "string"
 		},
@@ -76,7 +69,7 @@
 			"type": "object"
 		},
 		"functionAppVnetId": {
-			"defaultValue": "Default",
+			"defaultValue": "",
 			"metadata": {
 				"description": "The fully qualified resource ID of virtual network where BIG-IQ is deployed."
 			},
@@ -103,7 +96,7 @@
 		"functionAppApiVersion": "2018-11-01",
 		"functionAppName": "[concat(parameters('functionAppName'), '-function')]",
 		"functionAppVnetName": "[last(split(parameters('functionAppVnetId'),'/'))]",
-		"functionUrl": "https://cdn.f5.com/product/cloudsolutions/f5-cloud-functions/azure/TimerTriggerRevoke/v1.1.0/timer_trigger_revoke.zip",
+		"functionUrl": "https://cdn.f5.com/product/cloudsolutions/f5-cloud-functions/azure/TimerTriggerRevoke/develop/v1.2.0/timer_trigger_revoke.zip",
 		"functionStorageAccountId": "[concat(resourceGroup().id,'/providers/','Microsoft.Storage/storageAccounts/', variables('functionStorageAccountName'))]",
 		"functionStorageAccountName": "[concat(uniquestring(resourceGroup().id), 'azfunctions')]",
 		"functionWorkerRuntime": "python",
@@ -182,11 +175,10 @@
 						"AZURE_VMSS_NAME": "[variables('vmssName')]",
 						"AzureWebJobsStorage": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('functionStorageAccountName'), ';AccountKey=', listKeys(variables('functionStorageAccountId'),'2015-05-01-preview').key1)]",
 						"BIGIQ_ADDRESS": "[parameters('bigIqAddress')]",
-						"BIGIQ_LICENSE_POOL": "[if(equals(parameters('bigIqLicensePoolName'), 'Default'), json('null'), parameters('bigIqLicensePoolName'))]",
+						"BIGIQ_LICENSE_POOL": "[parameters('bigIqLicensePool')]",
 						"BIGIQ_PASSWORD": "[concat('@Microsoft.KeyVault(SecretUri=https://', variables('keyVaultName'), '.vault.azure.net/secrets/', variables('secretName'), '/)')]",
 						"BIGIQ_USERNAME": "[parameters('bigIqUsername')]",
-						"BIGIQ_UTILITY_KEY": "[if(equals(parameters('bigIqUtilityKey'), 'Default'), json('null'), parameters('bigIqUtilityKey'))]",
-						"BIGIQ_UTILITY_OFFER": "[if(equals(parameters('bigIqUtilityOffer'), 'Default'), json('null'), parameters('bigIqUtilityOffer'))]",
+						"BIGIQ_UTILITY_SKU": "[if(equals(parameters('bigIqUtilitySku'), ''), json('null'), parameters('bigIqUtilitySku'))]",
 						"F5_DISABLE_SSL_WARNINGS": false,
 						"TENANT": "[if(empty(parameters('bigIqTenant')), variables('vmssName'), parameters('bigIqTenant'))]",
 						"FUNCTIONS_EXTENSION_VERSION": "~3",
@@ -199,7 +191,7 @@
 				},
 				{
 					"apiVersion": "[variables('functionAppApiVersion')]",
-					"condition": "[not(equals(parameters('functionAppVnetId'), 'Default'))]",
+					"condition": "[not(equals(parameters('functionAppVnetId'), ''))]",
 					"dependsOn": [
 						"[resourceId('Microsoft.Web/sites', variables('functionAppName'))]"
 					],
