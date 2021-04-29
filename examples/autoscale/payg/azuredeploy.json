@@ -17,45 +17,75 @@
 			"type": "string"
 		},
 		"uniqueString": {
-			"defaultValue": "",
 			"metadata": {
-				"description": "A prefix that will be used to name template resources. Because some resources require globally unique names, we recommend using a unique value."
+				"description": "REQUIRED - A prefix that will be used to name template resources. Because some resources require globally unique names, we recommend using a unique value."
 			},
 			"type": "string"
+		},
+		"workspaceId": {
+			"metadata": {
+				"description": "Log Analytics workspace ID used by Telemetry Streaming for sending logs"
+			},
+			"type": "string",
+			"defaultValue": "WORKSPACE_ID"
 		},
 		"sshKey": {
 			"metadata": {
-				"description": "Supply the public key that will be used for SSH authentication to the BIG-IP and application virtual machines."
+				"description": "REQUIRED - Supply the public key that will be used for SSH authentication to the BIG-IP and application virtual machines."
 			},
 			"type": "string"
 		},
-		"newPassword": {
-			"defaultValue": "",
-			"metadata": {
-				"description": "The new password to be used for the admin user on the BIG-IP instances. This is required for creating the AZURE_PASSWORD secret referenced in the runtimeConfig template parameter."
-			},
-			"type": "securestring"
-		},
-		"appContainer": {
-			"defaultValue": "f5devcentral/f5-demo-app:1.0.1",
+		"appContainerName": {
+			"defaultValue": "f5devcentral/f5-demo-app:latest",
 			"metadata": {
 				"description": "The docker container to use when deploying the example application."
 			},
 			"type": "string"
 		},
-		"restrictedSrcMgmtAddress": {
-			"defaultValue": "",
+		"restrictedSrcAddressMgmt": {
 			"metadata": {
-				"description": "When creating management security group, this field restricts management access to a specific network or address. Enter an IP address or address range in CIDR notation, or asterisk for all sources."
+				"description": "REQUIRED - When creating management security group, this field restricts management access to a specific network or address. Enter an IP address or address range in CIDR notation, or asterisk for all sources."
 			},
 			"type": "string"
 		},
-		"runtimeConfig": {
+		"image": {
+			"defaultValue": "f5-networks:f5-big-ip-best:f5-bigip-virtual-edition-25m-best-hourly:16.0.101000",
+			"metadata": {
+				"description": "2 formats accepted. URN of the image to use in Azure marketplace or id of custom image. Example URN value: f5-networks:f5-big-ip-byol:f5-big-ltm-2slot-byol:15.1.201000. You can find the URNs of F5 marketplace images in the README for this template or by running the command: az vm image list --output yaml --publisher f5-networks --all. See https://clouddocs.f5.com/cloud/public/v1/azure/Azure_download.html for information on creating custom BIG-IP image."
+			},
+			"type": "string"
+		},
+		"bigIpRuntimeInitConfig": {
 			"defaultValue": "https://raw.githubusercontent.com/F5Networks/f5-azure-arm-templates-v2/master/examples/autoscale/bigip-configurations/runtime-init-conf-payg.yaml",
 			"metadata": {
 				"description": "Supply a URL to the bigip-runtime-init configuration file in YAML or JSON format, or an escaped JSON string to use for f5-bigip-runtime-init configuration."
 			},
 			"type": "string"
+		},
+		"bigIpRuntimeInitPackageUrl": {
+			"defaultValue": "https://cdn.f5.com/product/cloudsolutions/f5-bigip-runtime-init/develop/develop/dist/f5-bigip-runtime-init-1.2.0-1.gz.run",
+			"metadata": {
+				"description": "URL for BIG-IP Runtime Init package"
+			},
+			"type": "string"
+		},
+		"bigIpScalingMaxSize": {
+			"defaultValue": 10,
+			"metadata": {
+				"description": "Maximum number of BIG-IP instances (2-100) that can be created in the Auto Scale Group."
+			},
+			"minValue": 2,
+			"maxValue": 100,
+			"type": "int"
+		},
+		"bigIpScalingMinSize": {
+			"defaultValue": 2,
+			"metadata": {
+				"description": "Minimum number of BIG-IP instances (1-99) you want available in the Auto Scale Group."
+			},
+			"minValue": 1,
+			"maxValue": 99,
+			"type": "int"
 		},
 		"useAvailabilityZones": {
 			"defaultValue": true,
@@ -84,21 +114,21 @@
         "uniqueString": "[toLower(parameters('uniqueString'))]",
 		"adminUsername": "azureuser",
 
-		"assignManagedIdentity": "[or(not(empty(parameters('newPassword'))), not(empty(variables('customAutoscaleRules'))))]",
+		"assignManagedIdentity": "[not(empty(variables('customAutoscaleRules')))]",
 		"builtInRoleType": "Contributor",
 		"customRoleAssignableScopes": [],
 		"customRoleDescription": "",
 		"customRoleName": "",
 		"customRolePermissions": [],
-		"keyVaultName": "[concat(variables('uniqueString'), 'sv')]",
-		"keyVaultPermissionsKeys": ["get","list"],
-		"keyVaultPermissionsSecrets": ["get","list"],
-		"secretName": "mySecret",
-		"userAssignedIdentityName": "[concat(variables('uniqueString'), '-secretIdentity')]",
+		"keyVaultName": "",
+		"keyVaultPermissionsKeys": [],
+		"keyVaultPermissionsSecrets": [],
+		"secretName": "",
+		"userAssignedIdentityName": "[concat(variables('uniqueString'), '-userIdentity')]",
 
 		"numSubnets": 2,
 		"restrictedSrcMgmtPort": "8443",
-		"virtualNetworkName": "[concat(variables('uniqueString'), '-vnet')]",
+		"vnetName": "[concat(variables('uniqueString'), '-vnet')]",
 		"vnetAddressPrefix": "10.0",
 
 		"externalLoadBalancerName": "[concat(variables('uniqueString'), '-alb')]",
@@ -106,25 +136,26 @@
 		"internalLoadBalancerProbePort": "3456",
 		"internalSubnetId": "",
 		"loadBalancerRulePorts": ["80","443"],
-		"nsg0": [{"destinationPortRanges":["22","8443"],"sourceAddressPrefix":"[parameters('restrictedSrcMgmtAddress')]"},{"destinationPortRanges":["80","443"],"sourceAddressPrefix":"*"}],
-		"nsg1": [{"destinationPortRanges":["80","443"],"sourceAddressPrefix":"*"}],
+		"nsg0": [{"destinationPortRanges":["22","8443"],"sourceAddressPrefix":"[parameters('restrictedSrcAddressMgmt')]","protocol":"Tcp"},{"destinationPortRanges":["80","443"],"sourceAddressPrefix":"*","protocol":"Tcp"}],
+		"nsg1": [{"destinationPortRanges":["80","443"],"sourceAddressPrefix":"*","protocol":"Tcp"}],
 		"nsg2": [],
-		"numberPublicExternalIPAddresses": 1,
-		"numberPublicMgmtIPAddresses": 0,
+		"numberPublicExternalIpAddresses": 1,
+		"numberPublicMgmtIpAddresses": 0,
 
-		"provisionApp": "[not(empty(parameters('appContainer')))]",
-		"appInstanceName": "appvm01",
+		"provisionApp": "[not(empty(parameters('appContainerName')))]",
+		"createAutoscaleGroup": true,
+		"appInstanceName": "[variables('uniqueString')]",
 		"appInstanceType": "Standard_D2s_v3",
-		"cloudInitDeliveryLocation": "",
+		"cloudInitUrl": "",
 
 		"appInsights": "[concat(variables('uniqueString'), '-insights')]",
 		"appInsightsId": "[resourceId('Microsoft.Insights/components', variables('appInsights'))]",
 		"cpuMetricName": "Percentage CPU",
-		"customAutoscaleRules": [{"scaleAction":{"direction":"Increase","type":"ChangeCount","value":"1","cooldown":"PT1M"},"metricTrigger":{"metricName":"customMetrics/F5_system_cpu","metricNamespace":"","metricResourceUri":"[variables('appInsightsId')]","operator":"GreaterThan","statistic":"Average","threshold":"80","timeAggregation":"Average","timeGrain":"PT1M","timeWindow":"PT10M"}},{"scaleAction":{"direction":"Decrease","type":"ChangeCount","value":"1","cooldown":"PT1M"},"metricTrigger":{"metricName":"customMetrics/F5_system_cpu","metricNamespace":"","metricResourceUri":"[variables('appInsightsId')]","operator":"LessThan","statistic":"Average","threshold":"20","timeAggregation":"Average","timeGrain":"PT1M","timeWindow":"PT10M"}},{"scaleAction":{"direction":"Increase","type":"ChangeCount","value":"1","cooldown":"PT1M"},"metricTrigger":{"metricName":"customMetrics/F5_system_networkInterfaces_mgmt_counters.bitsIn","metricNamespace":"","metricResourceUri":"[variables('appInsightsId')]","operator":"GreaterThan","statistic":"Average","threshold":"20000000","timeAggregation":"Average","timeGrain":"PT1M","timeWindow":"PT10M"}},{"scaleAction":{"direction":"Decrease","type":"ChangeCount","value":"1","cooldown":"PT1M"},"metricTrigger":{"metricName":"customMetrics/F5_system_networkInterfaces_mgmt_counters.bitsIn","metricNamespace":"","metricResourceUri":"[variables('appInsightsId')]","operator":"LessThan","statistic":"Average","threshold":"10000000","timeAggregation":"Average","timeGrain":"PT1M","timeWindow":"PT10M"}}],
+		"customAutoscaleRules": [{"scaleAction":{"direction":"Increase","type":"ChangeCount","value":"1","cooldown":"PT1M"},"metricTrigger":{"metricName":"F5_system_cpu","metricNamespace":"azure.applicationinsights","metricResourceUri":"[variables('appInsightsId')]","operator":"GreaterThan","statistic":"Average","threshold":"[variables('scaleOutCpuThreshold')]","timeAggregation":"Average","timeGrain":"PT1M","timeWindow":"PT10M","Dimensions":[],"dividePerInstance":false}},{"scaleAction":{"direction":"Decrease","type":"ChangeCount","value":"1","cooldown":"PT1M"},"metricTrigger":{"metricName":"F5_system_cpu","metricNamespace":"azure.applicationinsights","metricResourceUri":"[variables('appInsightsId')]","operator":"LessThan","statistic":"Average","threshold":"[variables('scaleInCpuThreshold')]","timeAggregation":"Average","timeGrain":"PT1M","timeWindow":"PT10M","Dimensions":[],"dividePerInstance":false}},{"scaleAction":{"direction":"Increase","type":"ChangeCount","value":"1","cooldown":"PT1M"},"metricTrigger":{"metricName":"F5_throughputIn_sys/performance/throughput/In_Current","metricNamespace":"azure.applicationinsights","metricResourceUri":"[variables('appInsightsId')]","operator":"GreaterThan","statistic":"Average","threshold":"[variables('scaleOutThroughputThreshold')]","timeAggregation":"Average","timeGrain":"PT1M","timeWindow":"PT10M","Dimensions":[],"dividePerInstance":false}},{"scaleAction":{"direction":"Decrease","type":"ChangeCount","value":"1","cooldown":"PT1M"},"metricTrigger":{"metricName":"F5_throughputIn_sys/performance/throughput/In_Current","metricNamespace":"azure.applicationinsights","metricResourceUri":"[variables('appInsightsId')]","operator":"LessThan","statistic":"Average","threshold":"[variables('scaleInThroughputThreshold')]","timeAggregation":"Average","timeGrain":"PT1M","timeWindow":"PT10M","Dimensions":[],"dividePerInstance":false}}],
 		"customEmail": [],
-		"image": "f5-networks:f5-big-ip-best:f5-bigip-virtual-edition-25m-best-hourly:15.1.200000",
+		"image": "[parameters('image')]",
 		"instanceType": "Standard_DS3_v2",
-		"provisionPublicIPBigip": { "name": "publicIp01", "properties": { "idleTimeoutInMinutes": 15 } },
+		"provisionPublicIpBigip": { "name": "publicIp01", "properties": { "idleTimeoutInMinutes": 15 } },
 		"roleDefinitionId": "",
 		"scaleInCpuThreshold": 20,
 		"scaleInThroughputThreshold": 10000000,
@@ -133,10 +164,14 @@
 		"scaleOutThroughputThreshold": 20000000,
 		"scaleOutTimeWindow": 10,
 		"throughputMetricName": "Network In",
-		"vmScaleSetMaxCount": 10,
-		"vmScaleSetMinCount": 2,
-		"vmssName": "[concat(variables('uniqueString'), '-vmss')]"
-    },
+		"vmScaleSetMaxCount": "[parameters('bigIpScalingMaxSize')]",
+		"vmScaleSetMinCount": "[parameters('bigIpScalingMinSize')]",
+		"vmssName": "[concat(variables('uniqueString'), '-vmss')]",
+		"runtimeInitTag": {
+			"workspaceId": "[parameters('workspaceId')]",
+			"uniqueString": "[parameters('uniqueString')]"
+		}
+	},
 	"resources": [
 		{
 			"type": "Microsoft.Resources/deployments",
@@ -159,7 +194,7 @@
 					"keyVaultPermissionsKeys":{ "value": "[variables('keyVaultPermissionsKeys')]" },
 					"keyVaultPermissionsSecrets":{ "value": "[variables('keyVaultPermissionsSecrets')]" },
 					"secretName":{ "value": "[variables('secretName')]" },
-					"secretValue":{ "value": "[parameters('newPassword')]" },
+					"secretValue":{ "value": "" },
 					"userAssignedIdentityName":{ "value": "[variables('userAssignedIdentityName')]" },
 					"tagValues":{ "value": "[parameters('tagValues')]" }
 				}
@@ -177,8 +212,8 @@
 				},
 				"parameters": {
 					"numSubnets":{ "value": "[variables('numSubnets')]" },
-					"virtualNetworkName":{ "value": "[variables('virtualNetworkName')]" },
-					"vnetAddressPrefix":{ "value": "[variables('vnetAddressPrefix')]" },					
+					"vnetName":{ "value": "[variables('vnetName')]" },
+					"vnetAddressPrefix":{ "value": "[variables('vnetAddressPrefix')]" },
 					"tagValues":{ "value": "[parameters('tagValues')]" }
 				}
 			}
@@ -197,7 +232,7 @@
 					"contentVersion": "[variables('contentVersion')]"
 				},
 				"parameters": {
-					"dnsLabel":{ "value": "[variables('uniqueString')]" },
+					"uniqueString":{ "value": "[variables('uniqueString')]" },
 					"externalLoadBalancerName":{ "value": "[variables('externalLoadBalancerName')]" },
 					"internalLoadBalancerName":{ "value": "[variables('internalLoadBalancerName')]" },
 					"internalLoadBalancerProbePort":{ "value": "[variables('internalLoadBalancerProbePort')]" },
@@ -206,8 +241,8 @@
 					"nsg0":{ "value": "[variables('nsg0')]" },
 					"nsg1":{ "value": "[variables('nsg1')]" },
 					"nsg2":{ "value": "[variables('nsg2')]" },
-					"numberPublicExternalIPAddresses":{ "value": "[variables('numberPublicExternalIPAddresses')]" },
-					"numberPublicMgmtIPAddresses":{ "value": "[variables('numberPublicMgmtIPAddresses')]" },
+					"numberPublicExternalIpAddresses":{ "value": "[variables('numberPublicExternalIpAddresses')]" },
+					"numberPublicMgmtIpAddresses":{ "value": "[variables('numberPublicMgmtIpAddresses')]" },
 					"tagValues":{ "value": "[parameters('tagValues')]" }
 				}
 			}
@@ -230,12 +265,13 @@
 				"parameters": {
 					"adminUsername":{ "value": "[variables('adminUsername')]" },
 					"sshKey":{ "value": "[parameters('sshKey')]" },
+					"createAutoscaleGroup":{ "value": "[variables('createAutoscaleGroup')]" },
 					"instanceName":{ "value": "[variables('appInstanceName')]" },
 					"instanceType":{ "value": "[variables('appInstanceType')]" },
 					"subnetId":{ "value": "[reference('networkTemplate').outputs.subnets.value[1]]" },
 					"nsgId":{ "value": "[reference('dagTemplate').outputs.nsg1Id.value]" },
-					"appContainer":{ "value": "[parameters('appContainer')]" },
-					"cloudInitDeliveryLocation":{ "value": "[variables('cloudInitDeliveryLocation')]" },
+					"appContainerName":{ "value": "[parameters('appContainerName')]" },
+					"cloudInitUrl":{ "value": "[variables('cloudInitUrl')]" },
 					"tagValues":{ "value": "[parameters('tagValues')]" }
 				}
 			}
@@ -261,17 +297,18 @@
 					"cpuMetricName":{ "value": "[variables('cpuMetricName')]" },
 					"customAutoscaleRules":{ "value": "[variables('customAutoscaleRules')]" },
 					"customEmail":{ "value": "[variables('customEmail')]" },
-					"dnsLabel":{ "value": "[variables('uniqueString')]" },
+					"uniqueString":{ "value": "[variables('uniqueString')]" },
 					"image":{ "value": "[variables('image')]" },
-					"inboundMgmtNatPoolID":{ "value": "[if(greater(variables('numberPublicMgmtIPAddresses'), 0), reference('dagTemplate').outputs.inboundMgmtNatPool.value, '')]" },
-					"inboundSshNatPoolID":{ "value": "[if(greater(variables('numberPublicMgmtIPAddresses'), 0), reference('dagTemplate').outputs.inboundSshNatPool.value, '')]" },
-					"instanceHealthProbeID":{ "value": "[reference('dagTemplate').outputs.externalLoadBalancerProbesID.value[0]]" },
+					"inboundMgmtNatPoolId":{ "value": "[if(greater(variables('numberPublicMgmtIpAddresses'), 0), reference('dagTemplate').outputs.inboundMgmtNatPool.value, '')]" },
+					"inboundSshNatPoolId":{ "value": "[if(greater(variables('numberPublicMgmtIpAddresses'), 0), reference('dagTemplate').outputs.inboundSshNatPool.value, '')]" },
+					"instanceHealthProbeId":{ "value": "[reference('dagTemplate').outputs.externalLoadBalancerProbesId.value[0]]" },
 					"instanceType":{ "value": "[variables('instanceType')]" },
-					"loadBalancerBackendAddressPoolsArray":{ "value": [{ "id": "[reference('dagTemplate').outputs.externalBackEndLoadBalancerID.value]" }] },
-					"nsgID":{ "value": "[reference('dagTemplate').outputs.nsg0Id.value]" },
-					"provisionPublicIP":{ "value": "[variables('provisionPublicIPBigip')]" },
+					"loadBalancerBackendAddressPoolsArray":{ "value": [{ "id": "[reference('dagTemplate').outputs.externalBackEndLoadBalancerId.value]" }] },
+					"nsgId":{ "value": "[reference('dagTemplate').outputs.nsg0Id.value]" },
+					"provisionPublicIp":{ "value": "[variables('provisionPublicIpBigip')]" },
 					"roleDefinitionId":{ "value": "[variables('roleDefinitionId')]" },
-					"runtimeConfig":{ "value": "[parameters('runtimeConfig')]" },
+					"bigIpRuntimeInitPackageUrl": { "value": "[parameters('bigIpRuntimeInitPackageUrl')]" },
+					"bigIpRuntimeInitConfig":{ "value": "[parameters('bigIpRuntimeInitConfig')]" },
 					"scaleInCpuThreshold":{ "value": "[variables('scaleInCpuThreshold')]" },
 					"scaleInThroughputThreshold":{ "value": "[variables('scaleInThroughputThreshold')]" },
 					"scaleInTimeWindow":{ "value": "[variables('scaleInTimeWindow')]" },
@@ -280,7 +317,7 @@
 					"scaleOutTimeWindow":{ "value": "[variables('scaleOutTimeWindow')]" },
 					"sshKey":{ "value": "[parameters('sshKey')]" },
 					"subnetId":{ "value": "[reference('networkTemplate').outputs.subnets.value[0]]" },
-					"tagValues":{ "value": "[parameters('tagValues')]" },
+					"tagValues":{ "value": "[union(variables('runtimeInitTag'), parameters('tagValues'))]" },
 					"throughputMetricName":{ "value": "[variables('throughputMetricName')]" },
 					"useAvailabilityZones":{ "value": "[parameters('useAvailabilityZones')]" },
 					"userAssignManagedIdentity":{ "value": "[if(variables('assignManagedIdentity'), reference('accessTemplate').outputs.userAssignedIdentityId.value, '')]" },
@@ -293,41 +330,40 @@
 	],
 	"outputs": {
 		"virtualNetworkId": {
-            "type": "String",
+            "type": "string",
             "value": "[reference('networkTemplate').outputs.virtualNetwork.value]"
         },
-		"appVmName": {
+		"appVmssName": {
 			"condition": "[variables('provisionApp')]",
-            "type": "String",
-            "value": "[variables('appInstanceName')]"
+            "type": "string",
+            "value": "[reference('appTemplate').outputs.vmssName.value]"
         },
-		"appPublicIps": {
+		"appVmssId": {
+			"condition": "[variables('provisionApp')]",
+            "type": "string",
+            "value": "[reference('appTemplate').outputs.vmssId.value]"
+        },
+		"wafPublicIps": {
 			"condition": "[variables('provisionApp')]",
             "type": "array",
             "value": "[reference('dagTemplate').outputs.externalIps.value]"
         },
-		"appPrivateIp": {
-			"condition": "[variables('provisionApp')]",
-            "type": "String",
-            "value": "[reference('appTemplate').outputs.appIp.value]"
-        },
 		"appUsername": {
 			"condition": "[variables('provisionApp')]",
-            "type": "String",
+            "type": "string",
             "value": "[variables('adminUsername')]"
         },
 		"vmssId": {
-            "type": "String",
-            "value": "[reference('bigipTemplate').outputs.vmssID.value]"
-        },		
-		"bigipUsername": {
-            "type": "String",
-            "value": "[variables('adminUsername')]"
+            "type": "string",
+            "value": "[reference('bigipTemplate').outputs.vmssId.value]"
         },
-		"bigipPassword": {
-			"condition": "[not(empty(parameters('newPassword')))]",
-            "type": "String",
-            "value": "[parameters('newPassword')]"
+		"vmssName": {
+            "type": "string",
+            "value": "[reference('bigipTemplate').outputs.vmssName.value]"
+        },
+		"bigIpUsername": {
+            "type": "string",
+            "value": "[variables('adminUsername')]"
         }
 	}
 }
